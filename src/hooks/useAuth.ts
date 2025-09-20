@@ -23,11 +23,8 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      // Limpiar todas las queries cached
       queryClient.clear();
-      // Redirigir al login
       navigate("/auth/login");
-      // Mostrar mensaje de éxito (opcional)
       toast.success("Logged out successfully");
     },
     onError: (error: Error) => {
