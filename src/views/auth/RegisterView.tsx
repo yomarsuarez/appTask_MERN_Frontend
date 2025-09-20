@@ -1,0 +1,166 @@
+import { useForm } from "react-hook-form";
+import type { UserRegistrationForm } from "@/types/index";
+import { useMutation } from "@tanstack/react-query";
+import ErrorMessage from "@/components/ErrorMessage";
+import { Link } from "react-router-dom";
+import { createAccount } from "@/api/AuthAPI";
+import { toast } from "react-toastify";
+
+export default function RegisterView() {
+  const initialValues: UserRegistrationForm = {
+    name: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+  };
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<UserRegistrationForm>({ defaultValues: initialValues });
+
+  const { mutate } = useMutation({
+    mutationFn: createAccount,
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSuccess: (data) => {
+      toast.success(data);
+      reset();
+    },
+  });
+
+  const password = watch("password");
+
+  const handleRegister = (formData: UserRegistrationForm) => {
+    mutate(formData);
+  };
+
+  return (
+    <>
+      <h1 className="text-4xl md:text-5xl font-extrabold text-center text-white">
+        Create Account
+      </h1>
+      <p className="text-lg md:text-2xl font-light text-center text-gray-300 mt-4">
+        Fill out the form to
+        <span className="text-emerald-400 font-semibold">
+          {" "}
+          create your account
+        </span>
+      </p>
+
+      <form
+        onSubmit={handleSubmit(handleRegister)}
+        className="space-y-6 p-8 mt-8 bg-[#1e293b] rounded-xl shadow-lg"
+        noValidate
+      >
+        {/* Email */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className="font-medium text-sm text-gray-200">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /\S+@\S+\.\S+/,
+                message: "Invalid Email",
+              },
+            })}
+          />
+          {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
+        </div>
+
+        {/* Name */}
+        <div className="flex flex-col gap-2">
+          <label className="font-medium text-sm text-gray-200">Name</label>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            {...register("name", {
+              required: "Name of the user is required",
+            })}
+          />
+          {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
+        </div>
+
+        {/* Password */}
+        <div className="flex flex-col gap-2">
+          <label className="font-medium text-sm text-gray-200">Password</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            {...register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 8,
+                message: "The password must be at least 8 characters long.",
+              },
+            })}
+          />
+          {errors.password && (
+            <ErrorMessage>{errors.password.message}</ErrorMessage>
+          )}
+        </div>
+
+        {/* Repeat Password */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="password_confirmation"
+            className="font-medium text-sm text-gray-200"
+          >
+            Repeat Password
+          </label>
+          <input
+            id="password_confirmation"
+            type="password"
+            placeholder="Repeat your password"
+            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            {...register("password_confirmation", {
+              required: "Repeat Password is required",
+              validate: (value) =>
+                value === password || "Passwords are not the same",
+            })}
+          />
+          {errors.password_confirmation && (
+            <ErrorMessage>{errors.password_confirmation.message}</ErrorMessage>
+          )}
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          className="w-full p-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg transition-all duration-300 shadow-md"
+        >
+          Register
+        </button>
+      </form>
+
+      {/* Navigation */}
+      <nav className="mt-6 flex flex-col space-y-3">
+        <Link
+          to={"/auth/login"}
+          className="text-center text-gray-300 text-sm hover:text-emerald-400 transition-colors"
+        >
+          Already have an account?{" "}
+          <span className="font-semibold">Sign in</span>
+        </Link>
+        <Link
+          to={"/auth/forgot-password"}
+          className="text-center text-gray-300 text-sm hover:text-emerald-400 transition-colors"
+        >
+          Forgot your password? <span className="font-semibold">Reset</span>
+        </Link>
+      </nav>
+    </>
+  );
+}
